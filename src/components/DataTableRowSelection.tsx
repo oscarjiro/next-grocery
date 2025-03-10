@@ -132,24 +132,18 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
       header: '',
       enableSorting: false,
       cell: ({ row }) => {
-        const src = row.getValue('image_src') as string;
+        const src = row.getValue('image_src') as string
         return (
-          <div className="flex items-center">
-            {src ? (
-              <img src={src} alt="Product Image" width={50} height={50} />
-            ) : (
-              <Typography>-</Typography>
-            )}
+          <div className='flex items-center'>
+            {src ? <img src={src} alt='Product Image' width={50} height={50} /> : <Typography>-</Typography>}
           </div>
-        );
-      },
+        )
+      }
     }),
     []
-  );    
-  
+  )
+
   const modifiedColumns = useMemo<ColumnDef<T>[]>(
-    () => [rowSelectColumn, imageColumn, ...sortableDynamicColumns],
-    [rowSelectColumn, imageColumn, sortableDynamicColumns]
     () => [rowSelectColumn, imageColumn, ...sortableDynamicColumns],
     [rowSelectColumn, imageColumn, sortableDynamicColumns]
   )
