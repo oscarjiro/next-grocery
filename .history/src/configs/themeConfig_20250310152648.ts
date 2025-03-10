@@ -53,7 +53,7 @@ export type Config = {
 }
 
 const themeConfig: Config = {
-  templateName: 'Next Grocery',
+  templateName: 'Kalbe DevStreams UI Template',
   homePageUrl: '/home',
   settingsCookieName: 'kalbe-devstream-ui-1',
   mode: 'system', // 'system', 'light', 'dark'

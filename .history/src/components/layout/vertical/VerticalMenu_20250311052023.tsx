@@ -80,8 +80,8 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         <MenuItem href='/master/orders' icon={<i className='tabler-receipt' />}>
           Orders
         </MenuItem>
-        <MenuItem href='/master/carts' icon={<i className='tabler-device-mobile' />}>
-          Carts
+        <MenuItem href='/master/phones' icon={<i className='tabler-device-mobile' />}>
+          Phones
         </MenuItem>
       </Menu>
       {/* <Menu
