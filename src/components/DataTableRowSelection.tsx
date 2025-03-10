@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 
 import type { TextFieldProps } from '@mui/material'
-import { Button, Card, CardHeader, Checkbox, MenuItem } from '@mui/material'
+import { Button, Card, CardHeader, Checkbox, MenuItem, Typography } from '@mui/material'
 import TablePagination from '@mui/material/TablePagination'
 
 import {
@@ -125,9 +125,31 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
     []
   )
 
+  const imageColumn = useMemo<ColumnDef<T>>(
+    () => ({
+      id: 'image',
+      header: 'Image',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const src = row.getValue('image_src') as string; 
+        return (
+          <div className="flex items-center">
+            {src ? (
+              <img src={src} alt="Product Image" width={50} height={50} /> 
+            ) : (
+              <Typography>-</Typography> 
+            )}
+          </div>
+        );
+      }
+    }),
+    []
+  );
+  
+
   const modifiedColumns = useMemo<ColumnDef<T>[]>(
-    () => [rowSelectColumn, ...sortableDynamicColumns],
-    [rowSelectColumn, sortableDynamicColumns]
+    () => [rowSelectColumn, imageColumn, ...sortableDynamicColumns],
+    [rowSelectColumn, imageColumn, sortableDynamicColumns]
   )
 
   const table = useReactTable({

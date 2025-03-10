@@ -55,7 +55,7 @@ const UpsertProduct = ({ open, mode, initialProduct, setOpen, onAddProduct, onUp
     formState: { errors }
   } = useForm<ProductType>({
     resolver: yupResolver(schema),
-    defaultValues: { name: '', description: '', type: '' }
+    defaultValues: { name: '', description: '', price: 0, stock: 0, image_src: '' },
   })
 
   useEffect(() => {
@@ -148,6 +148,34 @@ const UpsertProduct = ({ open, mode, initialProduct, setOpen, onAddProduct, onUp
                     error={!!errors.type}
                     helperText={errors.type?.message}
                   />
+                )}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Controller
+                name='image_src'
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      onChange={handleFileUpload}
+                    />
+                    {errors.image_src && <span>{errors.image_src?.message}</span>}
+
+                    {/* Display the image if it exists in the edit mode */}
+                    {mode === 'edit' && initialProduct?.image_src && (
+                      <div>
+                        <img
+                          src={initialProduct.image_src}
+                          alt='Current Product'
+                          style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginTop: '8px' }}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               />
             </Grid>
