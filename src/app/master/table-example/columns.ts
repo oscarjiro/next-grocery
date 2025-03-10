@@ -1,5 +1,4 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import { format, parseISO } from 'date-fns'
 
 import type { ProductType } from './types'
 import { caseInsensitiveSort } from '@/utils/sorting'
@@ -19,21 +18,17 @@ const columns = [
     enableSorting: true,
     sortingFn: caseInsensitiveSort
   }),
-  columnHelper.accessor('type', {
+  columnHelper.accessor('price', {
     cell: info => info.getValue(),
-    header: 'Type',
+    header: 'Price',
     enableSorting: true,
     sortingFn: caseInsensitiveSort
   }),
-  columnHelper.accessor('created_at', {
-    cell: info => {
-      const value = info.getValue()
-
-      return value ? format(parseISO(value), 'yyyy-MM-dd HH:mm:ss') : '-'
-    },
-    header: 'Created At',
+  columnHelper.accessor('stock', {
+    cell: info => info.getValue(),
+    header: 'Stock',
     enableSorting: true,
-    sortingFn: 'datetime'
+    sortingFn: caseInsensitiveSort
   })
 ]
 

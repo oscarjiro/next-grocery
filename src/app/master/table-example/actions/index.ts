@@ -11,7 +11,7 @@ export async function getProducts(): Promise<ProductType[]> {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase.from('products').select('id, name, description, type, created_at')
+    const { data, error } = await supabase.from('products').select('*')
 
     if (error) throw new Error(error.message)
 
