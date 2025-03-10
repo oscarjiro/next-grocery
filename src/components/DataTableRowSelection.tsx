@@ -5,6 +5,8 @@ import { useMemo, useState, useEffect } from 'react'
 import type { TextFieldProps } from '@mui/material'
 import { Button, Card, CardHeader, Checkbox, MenuItem, Typography } from '@mui/material'
 import TablePagination from '@mui/material/TablePagination'
+import ProductDetailModal from '@/app/master/table-example/components/ProductDetail'
+import { ProductType } from '@/app/master/table-example/types'
 
 import {
   flexRender,
@@ -86,6 +88,8 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
   const [searchTerm, setSearchTerm] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
+  const [productDetailOpen, setProductDetailOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null) 
 
   const selectedCount = Object.keys(rowSelection).length
 
@@ -202,6 +206,12 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
     onExportToCSV(data, tableName)
   }
 
+  const handleRowClick = (row: any) => {
+    const product = row.original; 
+    setSelectedProduct(product); 
+    setProductDetailOpen(true); 
+  };
+
   return (
     <Card>
       <CardHeader title={tableName} />
@@ -291,7 +301,7 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
               </tr>
             ) : (
               currentPageRows.map(row => (
-                <tr key={row.id} className={row.getIsSelected() ? 'selected' : ''}>
+                <tr key={row.id} className={row.getIsSelected() ? 'selected' : ''} onClick={() => handleRowClick(row)}>
                   {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
                     <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                   ))}
@@ -321,6 +331,8 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
         confirmLabel='Delete'
         onConfirm={handleConfirmDelete}
       />
+
+      <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
     </Card>
   )
 }
