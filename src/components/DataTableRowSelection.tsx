@@ -150,6 +150,8 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
   const modifiedColumns = useMemo<ColumnDef<T>[]>(
     () => [rowSelectColumn, imageColumn, ...sortableDynamicColumns],
     [rowSelectColumn, imageColumn, sortableDynamicColumns]
+    () => [rowSelectColumn, imageColumn, ...sortableDynamicColumns],
+    [rowSelectColumn, imageColumn, sortableDynamicColumns]
   )
 
   const table = useReactTable({
