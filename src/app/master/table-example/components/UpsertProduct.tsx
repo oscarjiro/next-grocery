@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useTransition } from 'react'
 
 // MUI Imports
@@ -8,16 +6,17 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import Grid from '@mui/material/Grid2'
+import { DialogActions } from '@mui/material'
 
 // Custom Components
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { DialogActions } from '@mui/material'
-
 import CustomTextField from '@core/components/mui/TextField'
 import Form from '@components/Form'
+
+import { createClient } from '@/utils/supabase/client'
 
 import type { ProductType } from '../types'
 
@@ -25,7 +24,9 @@ import type { ProductType } from '../types'
 const schema = yup.object().shape({
   name: yup.string().required('Name is required'),
   description: yup.string().required('Description is required'),
-  type: yup.string().required('Type is required')
+  price: yup.number().required('Price is required').positive('Price must be greater than 0').moreThan(0, 'Price must be greater than 0'),
+  stock: yup.number().required('Stock is required').positive('Stock must be greater than 0').moreThan(0, 'Stock must be greater than 0'),
+  image_src: yup.string().required('Image is required'),
 })
 
 type ProductDialogType = {
@@ -52,17 +53,18 @@ const UpsertProduct = ({ open, mode, initialProduct, setOpen, onAddProduct, onUp
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
+    setValue,
   } = useForm<ProductType>({
     resolver: yupResolver(schema),
-    defaultValues: { name: '', description: '', type: '' }
+    defaultValues: { name: '', description: '', price: 0, stock: 0, image_src: '' }
   })
 
   useEffect(() => {
     if (initialProduct && mode === 'edit') {
       reset(initialProduct)
     } else if (mode === 'add') {
-      reset({ name: '', description: '', type: '' })
+      reset({ name: '', description: '', price: 0, stock: 0, image_src: '' })
     }
   }, [initialProduct, mode, reset])
 
@@ -87,6 +89,44 @@ const UpsertProduct = ({ open, mode, initialProduct, setOpen, onAddProduct, onUp
   const handleCancel = () => {
     reset()
     setOpen(false)
+  }
+
+  // Handle file upload to Supabase Storage
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      try {
+        const supabase = await createClient()
+
+        // Create a unique file name
+        const fileName = `${Date.now()}-${file.name}`
+
+        // Upload the file to Supabase storage
+        const { data, error } = await supabase
+          .storage
+          .from('product-images')
+          .upload(fileName, file)
+
+        if (error) throw new Error(error.message)
+
+        // Get the public URL of the uploaded file
+        const { data: urlData } = supabase
+          .storage
+          .from('product-images')
+          .getPublicUrl(fileName)
+
+        if (!urlData) throw new Error('Failed to get public URL')
+
+        // Access the publicUrl from the `data` object
+        const publicURL = urlData.publicUrl
+
+        // Set the public URL in the form
+        setValue('image_src', publicURL)
+      } catch (error: any) {
+        console.error('Error uploading file:', error)
+        alert('Failed to upload image')
+      }
+    }
   }
 
   return (
@@ -137,17 +177,51 @@ const UpsertProduct = ({ open, mode, initialProduct, setOpen, onAddProduct, onUp
 
             <Grid size={{ xs: 12 }}>
               <Controller
-                name='type'
+                name='price'
                 control={control}
                 render={({ field }) => (
                   <CustomTextField
                     {...field}
                     fullWidth
-                    label='Type'
-                    placeholder='Product Type'
-                    error={!!errors.type}
-                    helperText={errors.type?.message}
+                    label='Price'
+                    placeholder='Product Price'
+                    error={!!errors.price}
+                    helperText={errors.price?.message}
                   />
+                )}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Controller
+                name='stock'
+                control={control}
+                render={({ field }) => (
+                  <CustomTextField
+                    {...field}
+                    fullWidth
+                    label='Stock'
+                    placeholder='Product Stock'
+                    error={!!errors.stock}
+                    helperText={errors.stock?.message}
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <Controller
+                name='image_src'
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      onChange={handleFileUpload}
+                    />
+                    {errors.image_src && <span>{errors.image_src?.message}</span>}
+                  </>
                 )}
               />
             </Grid>

@@ -1,12 +1,20 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import { format, parseISO } from 'date-fns'
 
 import type { ProductType } from './types'
 import { caseInsensitiveSort } from '@/utils/sorting'
+import Img from './components/Image'
 
 const columnHelper = createColumnHelper<ProductType>()
 
 const columns = [
+  // columnHelper.accessor('image_src', {
+  //   cell: info => {
+  //     const src = info.getValue()
+  //     return src ? <Img src={src} alt="Product Image" width={50} height={50} /> : '-'
+  //   },
+  //   header: 'Image',
+  //   enableSorting: false,  
+  // }),
   columnHelper.accessor('name', {
     cell: info => info.getValue(),
     header: 'Name',
@@ -19,22 +27,18 @@ const columns = [
     enableSorting: true,
     sortingFn: caseInsensitiveSort
   }),
-  columnHelper.accessor('type', {
+  columnHelper.accessor('price', {
     cell: info => info.getValue(),
-    header: 'Type',
+    header: 'Price',
     enableSorting: true,
     sortingFn: caseInsensitiveSort
   }),
-  columnHelper.accessor('created_at', {
-    cell: info => {
-      const value = info.getValue()
-
-      return value ? format(parseISO(value), 'yyyy-MM-dd HH:mm:ss') : '-'
-    },
-    header: 'Created At',
+  columnHelper.accessor('stock', {
+    cell: info => info.getValue(),
+    header: 'Stock',
     enableSorting: true,
-    sortingFn: 'datetime'
-  })
+    sortingFn: caseInsensitiveSort
+  }),
 ]
 
 export default columns
