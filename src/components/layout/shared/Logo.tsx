@@ -11,7 +11,7 @@ import styled from '@emotion/styled'
 import type { VerticalNavContextProps } from '@menu/contexts/verticalNavContext'
 
 // Component Imports
-import KalbeLogo from '@core/svg/Logo'
+import AppLogo from '@core/svg/Logo'
 
 // Config Imports
 import themeConfig from '@configs/themeConfig'
@@ -70,8 +70,8 @@ const Logo = ({ color }: { color?: CSSProperties['color'] }) => {
   }, [isHovered, layout, isBreakpointReached])
 
   return (
-    <div className='flex items-center'>
-      <KalbeLogo className='text-2xl text-primary' />
+    <div className='flex items-center group'>
+      <AppLogo className='transition-all duration-200 group-hover:-rotate-12' />
       <LogoText
         color={color}
         ref={logoTextRef}
@@ -79,6 +79,7 @@ const Logo = ({ color }: { color?: CSSProperties['color'] }) => {
         isCollapsed={layout === 'collapsed'}
         transitionDuration={transitionDuration}
         isBreakpointReached={isBreakpointReached}
+        className='tracking-tight font-light'
       >
         {themeConfig.templateName}
       </LogoText>

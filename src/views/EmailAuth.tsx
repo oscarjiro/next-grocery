@@ -16,6 +16,7 @@ import {
   signInWithEmail,
   signUpWithEmail
 } from '@/app/(blank-layout-pages)/login/actions'
+import Link from '@/components/Link'
 
 const EmailAuth = () => {
   const { push } = useRouter()
@@ -37,9 +38,9 @@ const EmailAuth = () => {
     <div className='flex bs-full justify-center'>
       <div className='flex flex-col space-y-6 justify-center items-center bs-full !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
         {/* Header */}
-        <div className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+        <Link href='/' className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
           <Logo />
-        </div>
+        </Link>
 
         {/* Email Auth */}
         <div className='flex flex-col gap-4 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>

@@ -1,7 +1,7 @@
-import Image from 'next/image'
+import { LocalGroceryStore } from '@mui/icons-material'
 
-const Logo = () => {
-  return <Image src='/LogoPNG.png' alt='Logo' width={50} height={50} />
+const Logo = ({ className = '' }: { className?: string }) => {
+  return <LocalGroceryStore className={`${className}`} color='primary' />
 }
 
 export default Logo
