@@ -5,8 +5,6 @@ import type { ProductType } from '../types'
 import { useState } from 'react'
 import { addToCart } from '../actions'
 import { getUserInfo } from '../actions'
-import { showPromiseToast } from '@/utils/toastUtility'
-import { toast } from 'react-toastify'
 
 type ProductDetailDialogType = {
   open: boolean
@@ -23,12 +21,12 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
 
   const handleAddToCart = async () => {
     if (!product?.id) {
-      toast.error('Invalid product!')
+      alert('Invalid product!')
       return
     }
 
     if (!getUserInfo) {
-      toast.error('User not logged in!')
+      alert('User not logged in!')
       return
     }
 
@@ -36,14 +34,12 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
 
     try {
       const userId = (await getUserInfo()) ?? 'guest_user'
-
-      await showPromiseToast(() => addToCart([{ product_id: product?.id ?? '', quantity: 1 }], userId), {
-        pending: 'Adding product to cart...',
-        success: 'Product added to cart!',
-        error: 'Failed to add product to cart.'
-      })
-
+      await addToCart([{ product_id: product.id, quantity: 1 }], userId)
+      alert('Product added to cart!')
       handleClose()
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      alert('Failed to add product to cart.')
     } finally {
       setLoading(false)
     }

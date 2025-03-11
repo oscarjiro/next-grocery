@@ -37,7 +37,7 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
     try {
       const userId = (await getUserInfo()) ?? 'guest_user'
 
-      await showPromiseToast(() => addToCart([{ product_id: product?.id ?? '', quantity: 1 }], userId), {
+      await showPromiseToast(() => addToCart([{ product_id: product.id, quantity: 1 }], userId), {
         pending: 'Adding product to cart...',
         success: 'Product added to cart!',
         error: 'Failed to add product to cart.'
