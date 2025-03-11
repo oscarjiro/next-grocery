@@ -17,17 +17,26 @@ import {
   signUpWithEmail
 } from '@/app/(blank-layout-pages)/login/actions'
 import Link from '@/components/Link'
+import { toast } from 'react-toastify'
 
 const EmailAuth = () => {
   const { push } = useRouter()
   const [isLogin, setIsLogin] = useState(true)
-  const [isEmailPending, startEmailTransition] = useTransition()
+  const [isLoginPending, startLoginTransition] = useTransition()
+  const [isSignUpPending, startSignUpTransition] = useTransition()
   const [isKeycloakPending, startKeycloakTransition] = useTransition()
   const [state, formAction] = useActionState(
     async (prevState: EmailAuthState, formData: FormData) => {
       const result = await (isLogin ? signInWithEmail(prevState, formData) : signUpWithEmail(prevState, formData))
       if (result.success) {
         push('/')
+      } else if (result.errors?.general) {
+        toast.error(isLogin ? 'Login' : 'Signup', {
+          theme: 'colored',
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false
+        })
       }
       return result
     },
@@ -54,7 +63,11 @@ const EmailAuth = () => {
 
               {/* Form */}
               <Box
-                action={(formData: FormData) => startEmailTransition(() => formAction(formData))}
+                action={(formData: FormData) =>
+                  isLogin
+                    ? startLoginTransition(() => formAction(formData))
+                    : startSignUpTransition(() => formAction(formData))
+                }
                 component='form'
                 className='space-y-4'
               >
@@ -98,18 +111,24 @@ const EmailAuth = () => {
 
                 {/* Button */}
                 <Button
-                  startIcon={<SyncOutlined className={isEmailPending ? 'animate-spin' : 'hidden'} />}
+                  startIcon={
+                    <SyncOutlined
+                      className={
+                        (isLogin && isLoginPending) || (!isLogin && isSignUpPending) ? 'animate-spin' : 'hidden'
+                      }
+                    />
+                  }
                   type='submit'
-                  disabled={isEmailPending}
+                  disabled={isLoginPending || isSignUpPending || isKeycloakPending}
                   fullWidth
                   variant='contained'
                   className='text-white'
                 >
                   {isLogin
-                    ? isEmailPending
+                    ? isLoginPending
                       ? 'Logging in...'
                       : 'Login'
-                    : isEmailPending
+                    : isSignUpPending
                       ? 'Signing up...'
                       : 'Sign up'}
                 </Button>
@@ -143,12 +162,6 @@ const EmailAuth = () => {
               </footer>
             </CardContent>
           </Card>
-          {/* Error Message */}
-          {state.errors?.general && (
-            <Typography color='var(--error-color)' align='center'>
-              {state.errors.general}
-            </Typography>
-          )}
         </div>
 
         {/* Keycloak Auth */}
@@ -158,7 +171,7 @@ const EmailAuth = () => {
         <form action={() => startKeycloakTransition(signInWithDevStreamId)}>
           <Button
             startIcon={<SyncOutlined className={isKeycloakPending ? 'animate-spin' : 'hidden'} />}
-            disabled={isKeycloakPending}
+            disabled={isLoginPending || isSignUpPending || isKeycloakPending}
             type='submit'
             color='secondary'
             fullWidth
