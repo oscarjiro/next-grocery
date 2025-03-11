@@ -31,7 +31,7 @@ const EmailAuth = () => {
       if (result.success) {
         push('/')
       } else if (result.errors?.general) {
-        toast.error(isLogin ? 'Login' : 'Signup', {
+        toast.error(result.errors.general, {
           theme: 'colored',
           hideProgressBar: false,
           closeOnClick: true,
