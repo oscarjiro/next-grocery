@@ -89,7 +89,7 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
   const [productDetailOpen, setProductDetailOpen] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null) 
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null)
 
   const selectedCount = Object.keys(rowSelection).length
 
@@ -207,10 +207,10 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
   }
 
   const handleRowClick = (row: any) => {
-    const product = row.original; 
-    setSelectedProduct(product); 
-    setProductDetailOpen(true); 
-  };
+    const product = row.original
+    setSelectedProduct(product)
+    setProductDetailOpen(true)
+  }
 
   return (
     <Card>
@@ -301,7 +301,12 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
               </tr>
             ) : (
               currentPageRows.map(row => (
-                <tr key={row.id} className={row.getIsSelected() ? 'selected' : ''} onClick={() => handleRowClick(row)}>
+                <tr
+                  key={row.id}
+                  className={row.getIsSelected() ? 'selected' : ''}
+                  onClick={() => handleRowClick(row)}
+                  style={{ cursor: 'pointer' }}
+                >
                   {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
                     <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                   ))}
@@ -331,7 +336,6 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
         confirmLabel='Delete'
         onConfirm={handleConfirmDelete}
       />
-
       <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
     </Card>
   )
