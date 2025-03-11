@@ -4,9 +4,10 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 // Component Imports
-import Login from '@views/Login'
+// import Login from '@views/Login'
 import { createClient } from '@/utils/supabase/server'
 import { logger } from '@/utils/logger'
+import EmailAuth from '@/views/EmailAuth'
 
 export const metadata: Metadata = {
   title: 'Login',
@@ -24,7 +25,7 @@ const LoginPage = async () => {
     redirect('/')
   }
 
-  return <Login />
+  return <EmailAuth />
 }
 
 export default LoginPage

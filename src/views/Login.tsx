@@ -25,7 +25,7 @@ const LoginV2 = () => {
             <CardContent className='flex flex-col items-center text-center gap-4'>
               <div className='flex flex-col gap-1'>
                 <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</Typography>
-                <Typography>Please sign-in with your account</Typography>
+                <Typography>Please sign in with your account</Typography>
               </div>
               <form action={signInWithDevStreamId}>
                 <Button type='submit' fullWidth variant='contained' className='text-white'>
