@@ -206,11 +206,14 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
     onExportToCSV(data, tableName)
   }
 
-  const handleRowClick = (row: any) => {
+  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: any) => {
+    if ((event.target as HTMLElement).closest('input[type="checkbox"]')) return
+  
     const product = row.original
     setSelectedProduct(product)
     setProductDetailOpen(true)
   }
+  
 
   return (
     <Card>
@@ -304,7 +307,7 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
                 <tr
                   key={row.id}
                   className={row.getIsSelected() ? 'selected' : ''}
-                  onClick={() => handleRowClick(row)}
+                  onClick={(event) => handleRowClick(event, row)}
                   style={{ cursor: 'pointer' }}
                 >
                   {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
