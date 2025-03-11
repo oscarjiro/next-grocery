@@ -1,6 +1,10 @@
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, IconButton } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import CustomTextField from '@core/components/mui/TextField'
 import type { ProductType } from '../types'
+import { useState } from 'react'
+import { addToCart } from '../actions'
+import { getUserInfo } from '../actions'
 
 type ProductDetailDialogType = {
   open: boolean
@@ -9,13 +13,52 @@ type ProductDetailDialogType = {
 }
 
 const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType) => {
+  const [loading, setLoading] = useState(false)
+
   const handleClose = () => {
     setOpen(false)
   }
 
+  const handleAddToCart = async () => {
+    if (!product?.id) {
+      alert('Invalid product!')
+      return
+    }
+
+    if (!getUserInfo) {
+      alert('User not logged in!')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const userId = (await getUserInfo()) ?? 'guest_user'
+      await addToCart([{ product_id: product.id, quantity: 1 }], userId)
+      alert('Product added to cart!')
+      handleClose()
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      alert('Failed to add product to cart.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby='product-detail-dialog-title' fullWidth>
-      <DialogTitle id='product-detail-dialog-title'>Product Details</DialogTitle>
+      {/* Dialog Title and Close Button */}
+      <DialogTitle
+        id='product-detail-dialog-title'
+        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      >
+        Product Details
+        <IconButton edge='end' color='inherit' onClick={handleClose} aria-label='close'>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
+      {/* Dialog Content */}
       <DialogContent>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -23,11 +66,7 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
               fullWidth
               label='Name'
               value={product?.name || ''}
-              slotProps={{
-                htmlInput: {
-                  readOnly: true
-                }
-              }}
+              slotProps={{ htmlInput: { readOnly: true } }}
             />
           </Grid>
 
@@ -36,11 +75,7 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
               fullWidth
               label='Description'
               value={product?.description || ''}
-              slotProps={{
-                htmlInput: {
-                  readOnly: true
-                }
-              }}
+              slotProps={{ htmlInput: { readOnly: true } }}
             />
           </Grid>
 
@@ -49,11 +84,7 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
               fullWidth
               label='Price'
               value={`${product?.price.toFixed(2) || '0.00'}`}
-              slotProps={{
-                htmlInput: {
-                  readOnly: true
-                }
-              }}
+              slotProps={{ htmlInput: { readOnly: true } }}
             />
           </Grid>
 
@@ -62,11 +93,7 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
               fullWidth
               label='Stock'
               value={product?.stock || 0}
-              slotProps={{
-                htmlInput: {
-                  readOnly: true
-                }
-              }}
+              slotProps={{ htmlInput: { readOnly: true } }}
             />
           </Grid>
 
@@ -87,9 +114,11 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color='primary'>
-          Close
+
+      {/* Add to Cart Button */}
+      <DialogActions sx={{ justifyContent: 'flex-end' }}>
+        <Button variant='contained' color='primary' onClick={handleAddToCart} disabled={loading}>
+          {loading ? 'Adding...' : 'Add to Cart'}
         </Button>
       </DialogActions>
     </Dialog>
