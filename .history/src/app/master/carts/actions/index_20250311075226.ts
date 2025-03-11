@@ -10,7 +10,7 @@ export async function getCartItems(): Promise<CartItemType[]> {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase.from('cart_items').select('*, products(id, name, price, stock, image_src)')
+    const { data, error } = await supabase.from('cart_items').select('*, products(id, name, price, stock)')
 
     if (error) throw new Error(error.message)
 

@@ -2,7 +2,7 @@ export interface CartItemType {
   id: string
   product_id: string
   name: string
-  image_src: string
+  image_url: string
   quantity: number
   price: number
   created_at?: string

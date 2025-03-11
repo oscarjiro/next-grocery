@@ -10,7 +10,7 @@ export async function getCartItems(): Promise<CartItemType[]> {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase.from('cart_items').select('*, products(id, name, price, stock, image_src)')
+    const { data, error } = await supabase.from('cart_items').select('*, products(id, name, price, stock)')
 
     if (error) throw new Error(error.message)
 
@@ -19,8 +19,7 @@ export async function getCartItems(): Promise<CartItemType[]> {
     const cartItems = data.map(item => ({
       ...item,
       name: item.products?.name || 'Unknown Product',
-      price: item.products?.price || 0,
-      image_src: item.products?.image_src || '/placeholder.jpg'
+      price: item.products?.price || 0
     }))
 
     return cartItems
