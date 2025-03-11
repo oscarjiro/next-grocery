@@ -13,7 +13,7 @@ export default async function CartPage() {
     redirect('/login')
   }
 
-  const cartItems = await getCartItems()
+  const cartItems = await getCartItems(data.user.id)
 
   return <Cart initialData={cartItems || []} userId={data.user.id} />
 }

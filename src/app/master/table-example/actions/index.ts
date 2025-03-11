@@ -5,14 +5,16 @@ import { ProductType, CheckoutItem } from '../types'
 import { createClient } from '@/utils/supabase/server'
 import { logger } from '@/utils/logger'
 
-
 export async function getUserInfo() {
   const supabase = await createClient()
 
   try {
     const { data, error } = await supabase.auth.getUser()
     if (error) throw new Error(error.message)
-    return data.user?.id || null
+
+    logger('getUserInfo', data.user.id, 'info')
+
+    return data.user.id
   } catch (error: any) {
     logger('getUserInfo', error, 'error')
     return null
@@ -26,7 +28,7 @@ export async function getProducts(): Promise<ProductType[]> {
     const { data, error } = await supabase.from('products').select('*')
     if (error) throw new Error(error.message)
 
-    logger('getProducts', data, 'info')
+    // logger('getProducts', data, 'info')
     return data || []
   } catch (error: any) {
     logger('getProducts', error, 'error')
@@ -35,22 +37,20 @@ export async function getProducts(): Promise<ProductType[]> {
 }
 
 export async function addProduct(product: ProductType): Promise<ProductType | null> {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   try {
-    const productJSON = JSON.stringify(product);
+    const { error } = await supabase.rpc('add_product', { product: product })
 
-    const { error } = await supabase.rpc('add_product', { product: JSON.parse(productJSON) });
+    if (error) throw new Error(error.message)
 
-    if (error) throw new Error(error.message);
+    logger('addProduct', product, 'info')
 
-    logger('addProduct', product, 'info');
-
-    revalidatePath('/master/products');
-    return product;
+    revalidatePath('/master/products')
+    return product
   } catch (error: any) {
-    logger('addProduct', error, 'error');
-    return null;
+    logger('addProduct', error, 'error')
+    return null
   }
 }
 
@@ -58,9 +58,7 @@ export async function updateProduct(product: ProductType): Promise<ProductType |
   const supabase = await createClient()
 
   try {
-    const productJSON = JSON.stringify(product);
-
-    const { error } = await supabase.rpc('update_product', { product: JSON.parse(productJSON) })
+    const { error } = await supabase.rpc('update_product', { product: product })
     if (error) throw new Error(error.message)
 
     logger('updateProduct', product, 'info')
@@ -100,7 +98,7 @@ export async function addToCart(items: CheckoutItem[], userId: string) {
 
     const { error } = await supabase.rpc('add_to_cart', {
       user_id: userId,
-      items: JSON.stringify(items)
+      items: items
     })
 
     if (error) throw new Error(error.message)

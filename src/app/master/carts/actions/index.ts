@@ -3,37 +3,45 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { logger } from '@/utils/logger'
-import type { CartItemType } from '../types'
+import type { CartItemType, OrderType, OrderItemType } from '../types'
 
-// 🔹 Get Cart Items via RPC
+// Get Cart Items
 export async function getCartItems(userId: string): Promise<CartItemType[]> {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase.rpc('get_cart_items', { user_id: userId })
+    if (!userId) {
+      console.error('Error: userId is undefined')
+      return []
+    }
+
+    const { data, error } = await supabase.rpc('get_cart_items', { user_uuid: userId })
 
     if (error) throw new Error(error.message)
 
-    logger('getCartItems', data, 'info')
-    return data
+    return data || []
   } catch (error: any) {
+    console.error('getCartItems Error:', error)
     logger('getCartItems', error, 'error')
     return []
   }
 }
 
-// 🔹 Remove Cart Items via RPC
-export async function removeCartItems(userId: string): Promise<boolean> {
+// Remove Cart Items
+export async function removeCartItems(cartItems: CartItemType[]): Promise<boolean> {
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase.rpc('remove_cart_items', { user_id: userId })
+    const { error } = await supabase.rpc('remove_cart_items', {
+      cart_item_ids: cartItems.map(item => item.id)
+    })
 
     if (error) throw new Error(error.message)
 
-    logger('removeCartItems', { userId }, 'info')
+    logger('removeCartItems', cartItems, 'info')
 
     revalidatePath('/carts')
+
     return true
   } catch (error: any) {
     logger('removeCartItems', error, 'error')
@@ -41,38 +49,40 @@ export async function removeCartItems(userId: string): Promise<boolean> {
   }
 }
 
-// 🔹 Update Cart Item Quantity
-export async function updateCartItem(itemId: string, newQuantity: number): Promise<boolean> {
+// Update quantity
+export const updateCartItem = async (itemId: string, newQuantity: number) => {
   const supabase = await createClient()
 
-  try {
-    const { error } = await supabase.rpc('update_cart_item', { item_id: itemId, quantity: newQuantity })
+  const { error } = await supabase.rpc('update_cart_item', {
+    item_id: itemId,
+    new_quantity: newQuantity
+  })
 
-    if (error) throw new Error(error.message)
-
-    logger('updateCartItem', { itemId, newQuantity }, 'info')
-    return true
-  } catch (error: any) {
-    logger('updateCartItem', error, 'error')
-    return false
+  if (error) {
+    throw new Error(error.message)
   }
 }
 
-// 🔹 Checkout Cart via RPC
-export async function checkoutCart(userId: string): Promise<boolean> {
-  const supabase = await createClient()
+// Checkout Cart
+export async function checkoutCart(selectedItems: CartItemType[], userId: string): Promise<boolean> {
+  const supabase = await createClient();
 
   try {
-    const { error } = await supabase.rpc('checkout_cart', { user_id: userId })
+    console.log('User ID saat checkout:', userId);
 
-    if (error) throw new Error(error.message)
+    const { error } = await supabase.rpc('checkout_cart', {
+      user_uuid: userId,
+      selected_items: selectedItems,
+    });
 
-    logger('checkoutCart', { userId }, 'info')
+    if (error) throw new Error(error.message);
 
-    revalidatePath('/carts')
-    return true
+    logger('checkoutCart - Success', selectedItems, 'info');
+
+    revalidatePath('/carts');
+    return true;
   } catch (error: any) {
-    logger('checkoutCart', error, 'error')
-    return false
+    logger('checkoutCart', error, 'error');
+    return false;
   }
 }
