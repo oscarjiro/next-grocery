@@ -19,7 +19,7 @@ const columns = [
     sortingFn: caseInsensitiveSort
   }),
   columnHelper.accessor('price', {
-    cell: info => info.getValue().toFixed(2),
+    cell: info => info.getValue(),
     header: 'Price',
     enableSorting: true,
     sortingFn: caseInsensitiveSort

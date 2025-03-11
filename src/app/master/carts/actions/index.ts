@@ -3,52 +3,37 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { logger } from '@/utils/logger'
-import type { CartItemType, OrderType, OrderItemType } from '../types'
+import type { CartItemType } from '../types'
 
-// 🔹 Get Cart Items
-export async function getCartItems(): Promise<CartItemType[]> {
+// 🔹 Get Cart Items via RPC
+export async function getCartItems(userId: string): Promise<CartItemType[]> {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase.from('cart_items').select('*, products(id, name, price, stock, image_src)')
+    const { data, error } = await supabase.rpc('get_cart_items', { user_id: userId })
 
     if (error) throw new Error(error.message)
 
     logger('getCartItems', data, 'info')
-
-    const cartItems = data.map(item => ({
-      ...item,
-      name: item.products?.name || 'Unknown Product',
-      price: item.products?.price || 0,
-      image_src: item.products?.image_src || '/placeholder.jpg'
-    }))
-
-    return cartItems
+    return data
   } catch (error: any) {
     logger('getCartItems', error, 'error')
     return []
   }
 }
 
-// 🔹 Remove Cart Items
-export async function removeCartItems(cartItems: CartItemType[]): Promise<boolean> {
+// 🔹 Remove Cart Items via RPC
+export async function removeCartItems(userId: string): Promise<boolean> {
   const supabase = await createClient()
 
   try {
-    const { error } = await supabase
-      .from('cart_items')
-      .delete()
-      .in(
-        'id',
-        cartItems.map(item => item.id)
-      )
+    const { error } = await supabase.rpc('remove_cart_items', { user_id: userId })
 
     if (error) throw new Error(error.message)
 
-    logger('removeCartItems', cartItems, 'info')
+    logger('removeCartItems', { userId }, 'info')
 
     revalidatePath('/carts')
-
     return true
   } catch (error: any) {
     logger('removeCartItems', error, 'error')
@@ -56,52 +41,33 @@ export async function removeCartItems(cartItems: CartItemType[]): Promise<boolea
   }
 }
 
-export const updateCartItem = async (itemId: string, newQuantity: number) => {
-  const supabase = await createClient()
-
-  const { error } = await supabase.from('cart_items').update({ quantity: newQuantity }).eq('id', itemId)
-
-  if (error) {
-    throw new Error(error.message)
-  }
-}
-
-// 🔹 Checkout Cart
-export async function checkoutCart(selectedItems: CartItemType[], userId: string): Promise<boolean> {
+// 🔹 Update Cart Item Quantity
+export async function updateCartItem(itemId: string, newQuantity: number): Promise<boolean> {
   const supabase = await createClient()
 
   try {
-    const orderData: OrderType = {
-      user_id: userId,
-      status: 'success',
-      total_price: selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    }
+    const { error } = await supabase.rpc('update_cart_item', { item_id: itemId, quantity: newQuantity })
 
-    console.log('User ID saat checkout:', userId)
+    if (error) throw new Error(error.message)
 
-    // Insert order ke Supabase
-    const { data: order, error: orderError } = await supabase.from('orders').insert([orderData]).select().single()
+    logger('updateCartItem', { itemId, newQuantity }, 'info')
+    return true
+  } catch (error: any) {
+    logger('updateCartItem', error, 'error')
+    return false
+  }
+}
 
-    if (orderError) throw new Error(orderError.message)
+// 🔹 Checkout Cart via RPC
+export async function checkoutCart(userId: string): Promise<boolean> {
+  const supabase = await createClient()
 
-    logger('checkoutCart - Order Created', order, 'info')
+  try {
+    const { error } = await supabase.rpc('checkout_cart', { user_id: userId })
 
-    // Insert order items
-    const orderItems: OrderItemType[] = selectedItems.map(item => ({
-      order_id: order.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      purchase_price: item.price
-    }))
+    if (error) throw new Error(error.message)
 
-    const { error: orderItemsError } = await supabase.from('order_items').insert(orderItems)
-
-    if (orderItemsError) throw new Error(orderItemsError.message)
-
-    logger('checkoutCart - Order Items Created', orderItems, 'info')
-
-    // Remove items from cart
-    await removeCartItems(selectedItems)
+    logger('checkoutCart', { userId }, 'info')
 
     revalidatePath('/carts')
     return true
