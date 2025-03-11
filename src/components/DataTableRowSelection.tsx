@@ -3,8 +3,11 @@
 import { useMemo, useState, useEffect } from 'react'
 
 import type { TextFieldProps } from '@mui/material'
-import { Button, Card, CardHeader, Checkbox, MenuItem } from '@mui/material'
+import { Button, Card, CardHeader, Checkbox, MenuItem, Typography } from '@mui/material'
 import TablePagination from '@mui/material/TablePagination'
+import ProductDetailModal from '@/app/master/table-example/components/ProductDetail'
+import { ProductType } from '@/app/master/table-example/types'
+import { usePathname } from 'next/navigation'
 
 import {
   flexRender,
@@ -70,6 +73,10 @@ interface DataTableRowSelectionProps<T> {
   onDeleteProduct?: (rows: T[]) => Promise<void>
   onEditProduct?: (row: T) => void
   onExportToCSV?: (rows: T[], filename: string) => void
+  showAddButton?: boolean
+  showExportButton?: boolean
+  showEditButton?: boolean
+  disableProductDetail?: boolean
 }
 
 export default function DataTableRowSelection<T extends { id?: string | undefined | null }>({
@@ -80,12 +87,17 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
   onDeleteProduct,
   setOpen,
   onEditProduct,
-  onExportToCSV
+  onExportToCSV,
+  showAddButton = true,
+  showExportButton = true,
+  showEditButton = true
 }: DataTableRowSelectionProps<T>) {
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
+  const [productDetailOpen, setProductDetailOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null)
 
   const selectedCount = Object.keys(rowSelection).length
 
@@ -125,9 +137,27 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
     []
   )
 
+  const imageColumn = useMemo<ColumnDef<T>>(
+    () => ({
+      id: 'image_src',
+      accessorKey: 'image_src',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const src = row.getValue('image_src') as string
+        return (
+          <div className='flex items-center'>
+            {src ? <img src={src} alt='Product Image' width={50} height={50} /> : <Typography>-</Typography>}
+          </div>
+        )
+      }
+    }),
+    []
+  )
+
   const modifiedColumns = useMemo<ColumnDef<T>[]>(
-    () => [rowSelectColumn, ...sortableDynamicColumns],
-    [rowSelectColumn, sortableDynamicColumns]
+    () => [rowSelectColumn, imageColumn, ...sortableDynamicColumns],
+    [rowSelectColumn, imageColumn, sortableDynamicColumns]
   )
 
   const table = useReactTable({
@@ -184,6 +214,15 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
     onExportToCSV(data, tableName)
   }
 
+  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: any) => {
+    if ((event.target as HTMLElement).closest('input[type="checkbox"]')) return
+    const product = row.original
+    setSelectedProduct(product)
+    setProductDetailOpen(true)
+  }
+
+  const pathname = usePathname()
+
   return (
     <Card>
       <CardHeader title={tableName} />
@@ -215,19 +254,19 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
             />
           )}
 
-          {selectedCount === 0 && (
+          {selectedCount === 0 && showExportButton && (
             <Button variant='tonal' color='secondary' onClick={handleExportToCSV}>
               Export to CSV
             </Button>
           )}
 
-          {selectedCount === 0 && (
+          {selectedCount === 0 && showAddButton && (
             <Button variant='tonal' onClick={() => setOpen(true)}>
               Add New
             </Button>
           )}
 
-          {selectedCount === 1 && (
+          {selectedCount === 1 && showEditButton && (
             <Button variant='tonal' color='info' onClick={handleEdit}>
               Edit Data
             </Button>
@@ -273,7 +312,12 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
               </tr>
             ) : (
               currentPageRows.map(row => (
-                <tr key={row.id} className={row.getIsSelected() ? 'selected' : ''}>
+                <tr
+                  key={row.id}
+                  className={row.getIsSelected() ? 'selected' : ''}
+                  onClick={event => handleRowClick(event, row)}
+                  style={{ cursor: 'pointer' }}
+                >
                   {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
                     <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                   ))}
@@ -303,6 +347,9 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
         confirmLabel='Delete'
         onConfirm={handleConfirmDelete}
       />
+      {pathname !== '/master/carts' && (
+        <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
+      )}
     </Card>
   )
 }
