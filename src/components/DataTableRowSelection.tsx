@@ -347,7 +347,7 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
         confirmLabel='Delete'
         onConfirm={handleConfirmDelete}
       />
-      {pathname !== '/master/carts' && (
+      {pathname !== '/master/cart' && (
         <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
       )}
     </Card>
