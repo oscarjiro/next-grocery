@@ -11,6 +11,9 @@ import UserDropdown from '@components/layout/shared/UserDropdown'
 // Util Imports
 import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
 import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@mui/material'
+import { LoginOutlined } from '@mui/icons-material'
+import Link from '@/components/Link'
 
 const NavbarContent = () => {
   const user = useAuth()
@@ -21,7 +24,15 @@ const NavbarContent = () => {
         <NavToggle />
         <ModeDropdown />
       </div>
-      <div className='flex items-center'>{user && <UserDropdown />}</div>
+      <div className='flex items-center'>
+        {user ? (
+          <UserDropdown />
+        ) : (
+          <Button component={Link} href='/login' className='uppercase tracking-widest' startIcon={<LoginOutlined />}>
+            Login
+          </Button>
+        )}
+      </div>
     </div>
   )
 }
