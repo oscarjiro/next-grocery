@@ -59,6 +59,29 @@ function globalContainsFilter<T extends Record<string, any>>(
   return searchableValue.includes(filterValue.toLowerCase())
 }
 
+function priceRangeFilter<T extends Record<string, any>>(
+  row: { original: T },
+  columnId: string,
+  filterValue: string
+): boolean {
+  if (!filterValue) return true
+
+  const price = row.original[columnId] as number
+
+  switch (filterValue) {
+    case '1-10':
+      return price >= 1 && price <= 10
+    case '11-20':
+      return price >= 11 && price <= 20
+    case '21-30':
+      return price >= 21 && price <= 30
+    case '>30':
+      return price > 30
+    default:
+      return true
+  }
+}
+
 interface HomeDataTableProps<T> {
   data: T[]
   tableName: string
@@ -66,7 +89,7 @@ interface HomeDataTableProps<T> {
   setOpen: (open: boolean) => void
 }
 
-export default function HomeDataTable<T extends { id?: string | undefined | null; price: number }>({
+export default function HomeDataTable<T extends { id?: string | undefined | null }>({
   data,
   tableName,
   dynamicColumns,
@@ -77,27 +100,6 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
   const [productDetailOpen, setProductDetailOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null)
   const [priceFilter, setPriceFilter] = useState<string>('')
-
-  const priceRanges = [
-    { label: 'All Price', value: 'All Price' },
-    { label: 'Rp0.00 - Rp49,999.00', value: '0-49999' },
-    { label: 'Rp50,000.00 - Rp99,999.00', value: '50000-99999' },
-    { label: 'Rp100,000.00 - Rp149,999.00', value: '100000-149999' },
-    { label: '> Rp150,000.00', value: '>150000' }
-  ]
-
-  const filteredData = useMemo(() => {
-    if (!priceFilter) return data
-
-    return data.filter(item => {
-      const price = item.price as number
-      if (priceFilter === '0-49999') return price >= 0 && price <= 49999
-      if (priceFilter === '50000-99999') return price >= 50000 && price <= 99999
-      if (priceFilter === '100000-149999') return price >= 100000 && price <= 149999
-      if (priceFilter === '>150000') return price > 150000
-      return true
-    })
-  }, [data, priceFilter])
 
   const sortableDynamicColumns = useMemo(
     () =>
@@ -132,7 +134,7 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
   )
 
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns: modifiedColumns,
     getRowId: row => String(row.id),
     state: {
@@ -144,7 +146,10 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    globalFilterFn: globalContainsFilter
+    globalFilterFn: globalContainsFilter,
+    filterFns: {
+      priceRangeFilter
+    }
   })
 
   const currentPageRows = table.getRowModel().rows
@@ -190,11 +195,6 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
           className='max-sm:is-full sm:is-[150px]'
           placeholder='Filter by price'
         >
-          {priceRanges.map(range => (
-            <MenuItem key={range.value} value={range.value}>
-              {range.label}
-            </MenuItem>
-          ))}
         </CustomTextField>
       </div>
       <div className='overflow-x-auto'>

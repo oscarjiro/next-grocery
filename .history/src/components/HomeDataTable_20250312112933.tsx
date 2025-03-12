@@ -187,7 +187,7 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
           select
           value={priceFilter}
           onChange={e => setPriceFilter(e.target.value)}
-          className='max-sm:is-full sm:is-[150px]'
+          className='max-sm:is-full sm:is-[150px] w-'
           placeholder='Filter by price'
         >
           {priceRanges.map(range => (

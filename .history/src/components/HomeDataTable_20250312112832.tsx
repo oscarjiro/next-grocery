@@ -80,10 +80,10 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
 
   const priceRanges = [
     { label: 'All Price', value: 'All Price' },
-    { label: 'Rp0.00 - Rp49,999.00', value: '0-49999' },
-    { label: 'Rp50,000.00 - Rp99,999.00', value: '50000-99999' },
-    { label: 'Rp100,000.00 - Rp149,999.00', value: '100000-149999' },
-    { label: '> Rp150,000.00', value: '>150000' }
+    { label: 'Rp0.00 - Rp49,999', value: '0-49999' },
+    { label: 'Rp50,000 - Rp99,999', value: '50000-99999' },
+    { label: 'Rp100,000 - Rp149,999', value: '100000-149999' },
+    { label: '> 150,000', value: '>150000' }
   ]
 
   const filteredData = useMemo(() => {

@@ -79,25 +79,12 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
   const [priceFilter, setPriceFilter] = useState<string>('')
 
   const priceRanges = [
-    { label: 'All Price', value: 'All Price' },
-    { label: 'Rp0.00 - Rp49,999.00', value: '0-49999' },
-    { label: 'Rp50,000.00 - Rp99,999.00', value: '50000-99999' },
-    { label: 'Rp100,000.00 - Rp149,999.00', value: '100000-149999' },
-    { label: '> Rp150,000.00', value: '>150000' }
+    { label: 'All Price', value: '' },
+    { label: '0 - 49,999', value: '0-49999' },
+    { label: '50,000 - 99,999', value: '50000-99999' },
+    { label: '100,000 - 149,999', value: '100000-149999' },
+    { label: '> 150,000', value: '>150000' }
   ]
-
-  const filteredData = useMemo(() => {
-    if (!priceFilter) return data
-
-    return data.filter(item => {
-      const price = item.price as number
-      if (priceFilter === '0-49999') return price >= 0 && price <= 49999
-      if (priceFilter === '50000-99999') return price >= 50000 && price <= 99999
-      if (priceFilter === '100000-149999') return price >= 100000 && price <= 149999
-      if (priceFilter === '>150000') return price > 150000
-      return true
-    })
-  }, [data, priceFilter])
 
   const sortableDynamicColumns = useMemo(
     () =>
@@ -132,7 +119,7 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
   )
 
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns: modifiedColumns,
     getRowId: row => String(row.id),
     state: {
@@ -183,19 +170,6 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
           onChange={value => setSearchTerm(String(value))}
           placeholder='Type to search data...'
         />
-        <CustomTextField
-          select
-          value={priceFilter}
-          onChange={e => setPriceFilter(e.target.value)}
-          className='max-sm:is-full sm:is-[150px]'
-          placeholder='Filter by price'
-        >
-          {priceRanges.map(range => (
-            <MenuItem key={range.value} value={range.value}>
-              {range.label}
-            </MenuItem>
-          ))}
-        </CustomTextField>
       </div>
       <div className='overflow-x-auto'>
         <table className={styles.table}>

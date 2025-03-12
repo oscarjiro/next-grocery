@@ -1,12 +1,14 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import type { TextFieldProps } from '@mui/material'
 import { Card, CardHeader, MenuItem, Typography } from '@mui/material'
 import TablePagination from '@mui/material/TablePagination'
 import ProductDetailModal from '@/app/(master)/admin-dashboard/components/ProductDetail'
 import { ProductType } from '@/app/(master)/admin-dashboard/types'
 import { usePathname } from 'next/navigation'
+import { priceRanges, PriceRange } from '@/types/priceRanges'
+
 import {
   flexRender,
   getCoreRowModel,
@@ -16,6 +18,7 @@ import {
   getSortedRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, Cell, SortingState } from '@tanstack/react-table'
+
 import TablePaginationComponent from '@components/TablePaginationComponent'
 import styles from '@core/styles/table.module.css'
 import CustomTextField from '@/@core/components/mui/TextField'
@@ -44,19 +47,44 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
   return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
+/**
+ * Global text search filter.
+ */
 function globalContainsFilter<T extends Record<string, any>>(
   row: { original: T },
   columnId: string,
   filterValue: string
 ): boolean {
   if (!filterValue) return true
-
   const searchableValue = Object.values(row.original)
     .filter(val => val != null)
     .join(' ')
     .toLowerCase()
-
   return searchableValue.includes(filterValue.toLowerCase())
+}
+
+/**
+ * Filter function for the "price" column.
+ */
+function priceRangeFilter<T extends Record<string, any>>(
+  row: { original: T },
+  columnId: string,
+  filterValue: string
+): boolean {
+  if (!filterValue) return true
+  const price = Number(row.original[columnId])
+  switch (filterValue) {
+    case '1-10':
+      return price >= 1 && price <= 10
+    case '11-20':
+      return price >= 11 && price <= 20
+    case '21-30':
+      return price >= 21 && price <= 30
+    case '>30':
+      return price > 30
+    default:
+      return true
+  }
 }
 
 interface HomeDataTableProps<T> {
@@ -66,7 +94,7 @@ interface HomeDataTableProps<T> {
   setOpen: (open: boolean) => void
 }
 
-export default function HomeDataTable<T extends { id?: string | undefined | null; price: number }>({
+export default function HomeDataTable<T extends { id?: string | undefined | null }>({
   data,
   tableName,
   dynamicColumns,
@@ -74,30 +102,17 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
 }: HomeDataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('')
   const [sorting, setSorting] = useState<SortingState>([])
-  const [productDetailOpen, setProductDetailOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null)
-  const [priceFilter, setPriceFilter] = useState<string>('')
+  const [productDetailOpen, setProductDetailOpen] = useState(false)
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>('')
 
-  const priceRanges = [
-    { label: 'All Price', value: 'All Price' },
-    { label: 'Rp0.00 - Rp49,999.00', value: '0-49999' },
-    { label: 'Rp50,000.00 - Rp99,999.00', value: '50000-99999' },
-    { label: 'Rp100,000.00 - Rp149,999.00', value: '100000-149999' },
-    { label: '> Rp150,000.00', value: '>150000' }
+  const localPriceRanges = [
+    { label: 'All Price', value: '' },
+    { label: '1-10', value: '1-10' },
+    { label: '11-20', value: '11-20' },
+    { label: '21-30', value: '21-30' },
+    { label: '>30', value: '>30' }
   ]
-
-  const filteredData = useMemo(() => {
-    if (!priceFilter) return data
-
-    return data.filter(item => {
-      const price = item.price as number
-      if (priceFilter === '0-49999') return price >= 0 && price <= 49999
-      if (priceFilter === '50000-99999') return price >= 50000 && price <= 99999
-      if (priceFilter === '100000-149999') return price >= 100000 && price <= 149999
-      if (priceFilter === '>150000') return price > 150000
-      return true
-    })
-  }, [data, priceFilter])
 
   const sortableDynamicColumns = useMemo(
     () =>
@@ -132,20 +147,31 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
   )
 
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns: modifiedColumns,
     getRowId: row => String(row.id),
     state: {
       sorting,
-      globalFilter: searchTerm
+      globalFilter: searchTerm,
+      // Set up column filters only if a price range is selected.
+      columnFilters: selectedPriceRange ? [{ id: 'price', value: selectedPriceRange }] : []
     },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    globalFilterFn: globalContainsFilter
+    globalFilterFn: globalContainsFilter,
+    filterFns: {
+      // Assign the custom price range filter function to the "price" key.
+      price: priceRangeFilter
+    }
   })
+
+  // Reset the page index when the search term or price range changes.
+  useEffect(() => {
+    table.setPageIndex(0)
+  }, [searchTerm, selectedPriceRange])
 
   const currentPageRows = table.getRowModel().rows
   const filteredCount = table.getFilteredRowModel().rows.length
@@ -156,12 +182,21 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
     setProductDetailOpen(true)
   }
 
+  const handlePriceRangeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const newRange = e.target.value
+      setSelectedPriceRange(newRange)
+      table.setColumnFilters([{ id: 'price', value: newRange }])
+    },
+    [table]
+  )
+
   const pathname = usePathname()
 
   return (
     <Card>
       <CardHeader title={tableName} />
-      <div className='flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4'>
+      <div className='flex flex-col md:flex-row md:items-center p-6 border-bs gap-4'>
         <CustomTextField
           select
           value={table.getState().pagination.pageSize}
@@ -177,25 +212,24 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
             </MenuItem>
           ))}
         </CustomTextField>
+        <CustomTextField
+          select
+          value={selectedPriceRange}
+          onChange={handlePriceRangeChange}
+          className='max-sm:is-full sm:is-[150px]'
+        >
+          {localPriceRanges.map(range => (
+            <MenuItem key={range.value} value={range.value}>
+              {range.label}
+            </MenuItem>
+          ))}
+        </CustomTextField>
         <DebouncedInput
           value={searchTerm}
           className='max-sm:is-full min-is-[250px]'
           onChange={value => setSearchTerm(String(value))}
           placeholder='Type to search data...'
         />
-        <CustomTextField
-          select
-          value={priceFilter}
-          onChange={e => setPriceFilter(e.target.value)}
-          className='max-sm:is-full sm:is-[150px]'
-          placeholder='Filter by price'
-        >
-          {priceRanges.map(range => (
-            <MenuItem key={range.value} value={range.value}>
-              {range.label}
-            </MenuItem>
-          ))}
-        </CustomTextField>
       </div>
       <div className='overflow-x-auto'>
         <table className={styles.table}>
@@ -250,7 +284,9 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
           table.setPageIndex(0)
         }}
       />
-      <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
+      {pathname !== '/master/carts' && (
+        <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
+      )}
     </Card>
   )
 }

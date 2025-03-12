@@ -79,11 +79,11 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
   const [priceFilter, setPriceFilter] = useState<string>('')
 
   const priceRanges = [
-    { label: 'All Price', value: 'All Price' },
-    { label: 'Rp0.00 - Rp49,999.00', value: '0-49999' },
-    { label: 'Rp50,000.00 - Rp99,999.00', value: '50000-99999' },
-    { label: 'Rp100,000.00 - Rp149,999.00', value: '100000-149999' },
-    { label: '> Rp150,000.00', value: '>150000' }
+    { label: 'All Price', value: '' },
+    { label: 'Rp0,00 - Rp49,999', value: '0-49999' },
+    { label: 'Rp50,000 - Rp99,999', value: '50000-99999' },
+    { label: 'Rp100,000 - Rp149,999', value: '100000-149999' },
+    { label: '> Rp150,000', value: '150000' }
   ]
 
   const filteredData = useMemo(() => {
@@ -99,84 +99,24 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
     })
   }, [data, priceFilter])
 
-  const sortableDynamicColumns = useMemo(
-    () =>
-      dynamicColumns.map(column => ({
-        ...column,
-        enableSorting: true
-      })),
-    [dynamicColumns]
-  )
-
-  const imageColumn = useMemo<ColumnDef<T>>(
-    () => ({
-      id: 'image_src',
-      accessorKey: 'image_src',
-      header: '',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const src = row.getValue('image_src') as string
-        return (
-          <div className='flex items-center'>
-            {src ? <img src={src} alt='Product Image' width={50} height={50} /> : <Typography>-</Typography>}
-          </div>
-        )
-      }
-    }),
-    []
-  )
-
-  const modifiedColumns = useMemo<ColumnDef<T>[]>(
-    () => [imageColumn, ...sortableDynamicColumns],
-    [imageColumn, sortableDynamicColumns]
-  )
-
   const table = useReactTable({
     data: filteredData,
-    columns: modifiedColumns,
-    getRowId: row => String(row.id),
-    state: {
-      sorting,
-      globalFilter: searchTerm
-    },
-    onSortingChange: setSorting,
+    columns: dynamicColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    globalFilterFn: globalContainsFilter
+    getSortedRowModel: getSortedRowModel()
   })
 
-  const currentPageRows = table.getRowModel().rows
-  const filteredCount = table.getFilteredRowModel().rows.length
-
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: any) => {
-    const product = row.original
-    setSelectedProduct(product)
+    setSelectedProduct(row.original)
     setProductDetailOpen(true)
   }
-
-  const pathname = usePathname()
 
   return (
     <Card>
       <CardHeader title={tableName} />
       <div className='flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4'>
-        <CustomTextField
-          select
-          value={table.getState().pagination.pageSize}
-          onChange={e => {
-            table.setPageSize(Number(e.target.value))
-            table.setPageIndex(0)
-          }}
-          className='max-sm:is-full sm:is-[70px]'
-        >
-          {[5, 10, 15].map(pageSize => (
-            <MenuItem key={pageSize} value={pageSize}>
-              {pageSize}
-            </MenuItem>
-          ))}
-        </CustomTextField>
         <DebouncedInput
           value={searchTerm}
           className='max-sm:is-full min-is-[250px]'
@@ -203,52 +143,29 @@ export default function HomeDataTable<T extends { id?: string | undefined | null
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
-                    onClick={header.column.getToggleSortingHandler()}
-                    className={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
-                  >
-                    <div className='flex items-center gap-2'>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      {{
-                        asc: <i className='tabler-chevron-up text-xl' />,
-                        desc: <i className='tabler-chevron-down text-xl' />
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </div>
-                  </th>
+                  <th key={header.id}>{flexRender(header.column.columnDef.header, header.getContext())}</th>
                 ))}
               </tr>
             ))}
           </thead>
           <tbody>
-            {currentPageRows.length === 0 ? (
-              <tr>
-                <td colSpan={modifiedColumns.length} className='text-center'>
-                  No data found
-                </td>
+            {table.getRowModel().rows.map(row => (
+              <tr key={row.id} onClick={event => handleRowClick(event, row)}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                ))}
               </tr>
-            ) : (
-              currentPageRows.map(row => (
-                <tr key={row.id} onClick={event => handleRowClick(event, row)} style={{ cursor: 'pointer' }}>
-                  {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
-                    <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                  ))}
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
       <TablePagination
-        component={() => <TablePaginationComponent<T> table={table} />}
-        count={filteredCount}
+        component='div'
+        count={table.getFilteredRowModel().rows.length}
         page={table.getState().pagination.pageIndex}
         rowsPerPage={table.getState().pagination.pageSize}
         onPageChange={(_, newPage) => table.setPageIndex(newPage)}
-        onRowsPerPageChange={e => {
-          table.setPageSize(Number(e.target.value))
-          table.setPageIndex(0)
-        }}
+        onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
       />
       <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
     </Card>
