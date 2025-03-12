@@ -5,8 +5,8 @@ import { useMemo, useState, useEffect } from 'react'
 import type { TextFieldProps } from '@mui/material'
 import { Button, Card, CardHeader, Checkbox, MenuItem, Typography } from '@mui/material'
 import TablePagination from '@mui/material/TablePagination'
-import ProductDetailModal from '@/app/master/table-example/components/ProductDetail'
-import { ProductType } from '@/app/master/table-example/types'
+import ProductDetailModal from '@/app/(master)/admin-dashboard/components/ProductDetail'
+import { ProductType } from '@/app/(master)/admin-dashboard/types'
 import { usePathname } from 'next/navigation'
 
 import {
@@ -347,7 +347,7 @@ export default function DataTableRowSelection<T extends { id?: string | undefine
         confirmLabel='Delete'
         onConfirm={handleConfirmDelete}
       />
-      {pathname !== '/master/cart' && (
+      {pathname !== '/cart' && (
         <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
       )}
     </Card>
