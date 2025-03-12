@@ -1,8 +1,10 @@
 import { Box, Typography } from '@mui/material'
-import { getFilteredProducts, getProductsPages } from './actions'
+import { getProductsPages } from './actions'
 import Search from '@/components/Search'
 import Pagination from '@/components/Pagination'
-import ProductCard from './ProductCard'
+import { Suspense } from 'react'
+import { ProductGridSkeleton } from './skeleton'
+import ProductGrid from './ProductGrid'
 
 export default async function Page(props: { searchParams?: Promise<{ query?: string; page?: string }> }) {
   const searchParams = await props.searchParams
@@ -13,11 +15,6 @@ export default async function Page(props: { searchParams?: Promise<{ query?: str
   totalPages = totalPages ? Math.ceil(totalPages) : 1
   if (totalPagesError) {
     console.error('Error fetching total products pages:', totalPagesError)
-  }
-
-  const { products, error: productsError } = await getFilteredProducts(page, query)
-  if (productsError) {
-    console.error('Error fetching products:', productsError)
   }
 
   return (
@@ -31,13 +28,9 @@ export default async function Page(props: { searchParams?: Promise<{ query?: str
       <Search placeholder="What's on your grocery list?" />
 
       {/* Grid */}
-      <Box className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 w-full gap-4'>
-        {products?.length ? (
-          products.map(product => <ProductCard key={product.id} product={product} />)
-        ) : (
-          <p>No products yet :(</p>
-        )}
-      </Box>
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <ProductGrid query={query} page={page} />
+      </Suspense>
 
       {/* Pagination */}
       <Pagination totalPages={totalPages} />
