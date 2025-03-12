@@ -10,17 +10,18 @@ import UserDropdown from '@components/layout/shared/UserDropdown'
 
 // Util Imports
 import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
+import { useAuth } from '@/hooks/useAuth'
 
 const NavbarContent = () => {
+  const user = useAuth()
+
   return (
     <div className={classnames(verticalLayoutClasses.navbarContent, 'flex items-center justify-between gap-4 is-full')}>
       <div className='flex items-center gap-4'>
         <NavToggle />
         <ModeDropdown />
       </div>
-      <div className='flex items-center'>
-        <UserDropdown />
-      </div>
+      <div className='flex items-center'>{user && <UserDropdown />}</div>
     </div>
   )
 }
