@@ -95,7 +95,7 @@ export default function Products({ initialData }: ProductsProps) {
         <DataTableRowSelection
           data={products}
           dynamicColumns={columns}
-          tableName='Products Table'
+          tableName='Products List'
           setOpen={handleOpenAddModal}
           onSelectedRowsChange={setSelectedRows}
           onDeleteProduct={handleDeleteProducts}

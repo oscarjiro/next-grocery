@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Box, Skeleton, Button } from '@mui/material'
 
 import type { CartItemType } from '../types'
-import { getCartItems, removeCartItems, checkoutCart, updateCartItem } from '../actions'
+import { removeCartItems, checkoutCart, updateCartItem } from '../actions'
 import DataTableRowSelection from '@/components/DataTableRowSelection'
 import { showPromiseToast } from '@/utils/toastUtility'
 

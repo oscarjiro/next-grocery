@@ -48,7 +48,7 @@ const OrderHistory = ({ orders }: OrderHistoryProps) => {
                     <Table>
                       <TableBody>
                         {/* 🟢 Baris Order (judul) */}
-                        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableRow >
                           <TableCell colSpan={3}>
                             <Box display='flex' justifyContent='space-between' alignItems='center'>
                               <Typography fontWeight={600}>
@@ -82,7 +82,7 @@ const OrderHistory = ({ orders }: OrderHistoryProps) => {
                         ))}
 
                         {/* 🟠 Total Harga */}
-                        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableRow>
                           <TableCell>
                             <Typography variant='h6' fontWeight={600}>
                               Total:

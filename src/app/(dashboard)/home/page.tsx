@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
-import { jwtDecode } from 'jwt-decode'
+import { getProducts } from '@/app/(master)/admin-dashboard/actions'
+import Products from './components/HomeProduct'
 
 export default async function Page() {
   const supabase = await createClient()
@@ -12,8 +13,7 @@ export default async function Page() {
     redirect('/login')
   }
 
-  console.log(data.user.id);
-  
+  const products = await getProducts()
 
-  return <h1>Home page!</h1>
+  return <Products initialData={products || []} />
 }

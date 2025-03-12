@@ -7,6 +7,7 @@ import { addToCart } from '../actions'
 import { getUserInfo } from '../actions'
 import { showPromiseToast } from '@/utils/toastUtility'
 import { toast } from 'react-toastify'
+import { usePathname } from 'next/navigation'
 
 type ProductDetailDialogType = {
   open: boolean
@@ -48,6 +49,8 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
       setLoading(false)
     }
   }
+
+  const pathname = usePathname()
 
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby='product-detail-dialog-title' fullWidth>
@@ -120,11 +123,13 @@ const ProductDetailModal = ({ open, product, setOpen }: ProductDetailDialogType)
       </DialogContent>
 
       {/* Add to Cart Button */}
-      <DialogActions sx={{ justifyContent: 'flex-end' }}>
-        <Button variant='contained' color='primary' onClick={handleAddToCart} disabled={loading}>
-          {loading ? 'Adding...' : 'Add to Cart'}
-        </Button>
-      </DialogActions>
+      {pathname !== '/admin-dashboard' && (
+        <DialogActions sx={{ justifyContent: 'flex-end' }}>
+          <Button variant='contained' color='primary' onClick={handleAddToCart} disabled={loading}>
+            {loading ? 'Adding...' : 'Add to Cart'}
+          </Button>
+        </DialogActions>
+      )}
     </Dialog>
   )
 }

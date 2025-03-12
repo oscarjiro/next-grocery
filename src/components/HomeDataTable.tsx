@@ -1,14 +1,12 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-
 import type { TextFieldProps } from '@mui/material'
 import { Card, CardHeader, MenuItem, Typography } from '@mui/material'
 import TablePagination from '@mui/material/TablePagination'
-import ProductDetailModal from '@/app/master/table-example/components/ProductDetail'
-import { ProductType } from '@/app/master/table-example/types'
+import ProductDetailModal from '@/app/(master)/admin-dashboard/components/ProductDetail'
+import { ProductType } from '@/app/(master)/admin-dashboard/types'
 import { usePathname } from 'next/navigation'
-
 import {
   flexRender,
   getCoreRowModel,
@@ -18,9 +16,7 @@ import {
   getSortedRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, Cell, SortingState } from '@tanstack/react-table'
-
 import TablePaginationComponent from '@components/TablePaginationComponent'
-
 import styles from '@core/styles/table.module.css'
 import CustomTextField from '@/@core/components/mui/TextField'
 
@@ -63,21 +59,55 @@ function globalContainsFilter<T extends Record<string, any>>(
   return searchableValue.includes(filterValue.toLowerCase())
 }
 
-interface UserDataTableRowSelectionProps<T> {
+function priceRangeFilter<T extends Record<string, any>>(
+  row: { original: T },
+  columnId: string,
+  filterValue: string
+): boolean {
+  if (!filterValue) return true
+
+  const price = row.original[columnId] as number
+
+  switch (filterValue) {
+    case '1-10':
+      return price >= 1 && price <= 10
+    case '11-20':
+      return price >= 11 && price <= 20
+    case '21-30':
+      return price >= 21 && price <= 30
+    case '>30':
+      return price > 30
+    default:
+      return true
+  }
+}
+
+interface HomeDataTableProps<T> {
   data: T[]
   tableName: string
   dynamicColumns: ColumnDef<T, any>[]
+  setOpen: (open: boolean) => void
 }
 
-export default function UserDataTableRowSelection<T extends { id?: string | undefined | null }>({
+export default function HomeDataTable<T extends { id?: string | undefined | null }>({
   data,
   tableName,
-  dynamicColumns
-}: UserDataTableRowSelectionProps<T>) {
+  dynamicColumns,
+  setOpen
+}: HomeDataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('')
   const [sorting, setSorting] = useState<SortingState>([])
   const [productDetailOpen, setProductDetailOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null)
+  const [priceFilter, setPriceFilter] = useState<string>('')
+
+  const priceRanges = [
+    { label: 'All Price', value: '' },
+    { label: '1-10', value: '1-10' },
+    { label: '11-20', value: '11-20' },
+    { label: '21-30', value: '21-30' },
+    { label: '>30', value: '>30' }
+  ]
 
   const sortableDynamicColumns = useMemo(
     () =>
@@ -124,7 +154,10 @@ export default function UserDataTableRowSelection<T extends { id?: string | unde
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    globalFilterFn: globalContainsFilter
+    globalFilterFn: globalContainsFilter,
+    filterFns: {
+      priceRangeFilter
+    }
   })
 
   const currentPageRows = table.getRowModel().rows
@@ -163,6 +196,19 @@ export default function UserDataTableRowSelection<T extends { id?: string | unde
           onChange={value => setSearchTerm(String(value))}
           placeholder='Type to search data...'
         />
+        <CustomTextField
+          select
+          value={priceFilter}
+          onChange={e => setPriceFilter(e.target.value)}
+          className='max-sm:is-full sm:is-[150px]'
+          placeholder='Filter by price'
+        >
+          {priceRanges.map(range => (
+            <MenuItem key={range.value} value={range.value}>
+              {range.label}
+            </MenuItem>
+          ))}
+        </CustomTextField>
       </div>
       <div className='overflow-x-auto'>
         <table className={styles.table}>
@@ -177,6 +223,10 @@ export default function UserDataTableRowSelection<T extends { id?: string | unde
                   >
                     <div className='flex items-center gap-2'>
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {{
+                        asc: <i className='tabler-chevron-up text-xl' />,
+                        desc: <i className='tabler-chevron-down text-xl' />
+                      }[header.column.getIsSorted() as string] ?? null}
                     </div>
                   </th>
                 ))}
@@ -213,6 +263,7 @@ export default function UserDataTableRowSelection<T extends { id?: string | unde
           table.setPageIndex(0)
         }}
       />
+      <ProductDetailModal open={productDetailOpen} product={selectedProduct} setOpen={setProductDetailOpen} />
     </Card>
   )
 }
