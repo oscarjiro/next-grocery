@@ -22,7 +22,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </Typography>
 
         {/* Price and stock*/}
-        <div>
+        <div className='mt-auto'>
           <div className='flex items-center justify-between mt-2'>
             <Typography variant='h6' className='text-primary font-bold'>
               ${price.toFixed(2)}

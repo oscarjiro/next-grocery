@@ -19,7 +19,7 @@ export default function Products({ initialData }: ProductsProps) {
   const [isPending, startTransition] = useTransition()
 
   return (
-    <div>
+    <div className='w-full'>
       {isPending || !products ? (
         <Box>
           <Skeleton variant='rectangular' width='100%' height={50} />
@@ -27,14 +27,8 @@ export default function Products({ initialData }: ProductsProps) {
           <Skeleton variant='rectangular' width='100%' height={50} sx={{ mt: 2 }} />
         </Box>
       ) : (
-        <HomeDataTable
-          data={products}
-          dynamicColumns={columns}
-          tableName='Products List'
-          setOpen={setOpen}
-        />
+        <HomeDataTable data={products} dynamicColumns={columns} tableName='Products List' setOpen={setOpen} />
       )}
-      
     </div>
   )
 }
